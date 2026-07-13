@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    private let urlString = "https://www.baidu.com"
+    private let urlString = "https://sit-k-library.accentrix.com/llk-webapp/"
     
     var body: some View {
         WebView(urlString: urlString)
