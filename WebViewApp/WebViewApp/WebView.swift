@@ -4,6 +4,8 @@ import UIKit
 
 struct WebView: UIViewRepresentable {
     let urlString: String
+    @Binding var showScanner: Bool
+    @Binding var scanResult: ScanCallbackResult?
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -13,6 +15,8 @@ struct WebView: UIViewRepresentable {
         let webConfiguration = WKWebViewConfiguration()
         let userContentController = WKUserContentController()
         userContentController.add(context.coordinator, name: "invokeGetMachineid")
+        userContentController.add(context.coordinator, name: "invokeStartScanning")
+        userContentController.add(context.coordinator, name: "invokeStopScanning")
         webConfiguration.userContentController = userContentController
         
         let webView = WKWebView(frame: .zero, configuration: webConfiguration)
@@ -34,22 +38,52 @@ struct WebView: UIViewRepresentable {
         
         init(_ parent: WebView) {
             self.parent = parent
+            super.init()
+            
+            // 监听扫码结果通知
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleScanResultNotification(_:)),
+                name: .scanResult,
+                object: nil
+            )
+        }
+        
+        @objc private func handleScanResultNotification(_ notification: Notification) {
+            guard let userInfo = notification.userInfo,
+                  let key = userInfo["key"] as? String,
+                  let value = userInfo["value"] as? String else { return }
+            print("📱 [Native] 收到扫码结果通知: key=\(key), value=\(value)")
+            callbackScanResult(key: key, value: value)
         }
         
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
             print("📱 [Native] 收到 JS 消息: \(message.name), body: \(message.body)")
-            if message.name == "invokeGetMachineid" {
-                print("📱 [Native] 前端调用了 getMachineid 方法")
-                let machineId = getMachineId()
-                print("📱 [Native] 获取到的设备 ID: \(machineId)")
-                let jsCode = "window.setMachineid('\(machineId)')"
-                print("📱 [Native] 回调 JS: \(jsCode)")
-                webView?.evaluateJavaScript(jsCode) { result, error in
-                    if let error = error {
-                        print("📱 [Native] 回调 JS 失败: \(error.localizedDescription)")
-                    } else {
-                        print("📱 [Native] 回调 JS 成功")
-                    }
+            
+            switch message.name {
+            case "invokeGetMachineid":
+                handleGetMachineid()
+            case "invokeStartScanning":
+                handleStartScanning()
+            case "invokeStopScanning":
+                handleStopScanning()
+            default:
+                break
+            }
+        }
+        
+        // MARK: - 获取设备ID
+        private func handleGetMachineid() {
+            print("📱 [Native] 前端调用了 getMachineid 方法")
+            let machineId = getMachineId()
+            print("📱 [Native] 获取到的设备 ID: \(machineId)")
+            let jsCode = "window.setMachineid('\(machineId)')"
+            print("📱 [Native] 回调 JS: \(jsCode)")
+            webView?.evaluateJavaScript(jsCode) { result, error in
+                if let error = error {
+                    print("📱 [Native] 回调 JS 失败: \(error.localizedDescription)")
+                } else {
+                    print("📱 [Native] 回调 JS 成功")
                 }
             }
         }
@@ -61,8 +95,37 @@ struct WebView: UIViewRepresentable {
             return UUID().uuidString
         }
         
+        // MARK: - 扫码
+        private func handleStartScanning() {
+            print("📱 [Native] 前端调用了 startScan 方法")
+            DispatchQueue.main.async {
+                self.parent.showScanner = true
+            }
+        }
+        
+        private func handleStopScanning() {
+            print("📱 [Native] 前端调用了 stopScan 方法")
+            DispatchQueue.main.async {
+                self.parent.showScanner = false
+            }
+        }
+        
+        func callbackScanResult(key: String, value: String) {
+            let escapedValue = value.replacingOccurrences(of: "'", with: "\\'")
+            let jsCode = "window.setScanResult({key:'\(key)',value:'\(escapedValue)'})"
+            print("📱 [Native] 回调扫码结果 JS: \(jsCode)")
+            webView?.evaluateJavaScript(jsCode) { result, error in
+                if let error = error {
+                    print("📱 [Native] 回调扫码结果失败: \(error.localizedDescription)")
+                } else {
+                    print("📱 [Native] 回调扫码结果成功")
+                }
+            }
+        }
+        
+        // MARK: - 页面加载完成，注入JS API
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            print("📱 [Native] 页面加载完成，准备注入 commonApi")
+            print("📱 [Native] 页面加载完成，准备注入 commonApi / scanApi")
             let jsCode = """
             window.commonApi = {
                 getMachineid: function() {
@@ -70,15 +133,31 @@ struct WebView: UIViewRepresentable {
                     window.webkit.messageHandlers.invokeGetMachineid.postMessage({});
                 }
             };
-            console.log('[JS] commonApi 已注入');
+            window.scanApi = {
+                startScan: function() {
+                    console.log('[JS] 调用 Native startScan');
+                    window.webkit.messageHandlers.invokeStartScanning.postMessage({});
+                },
+                stopScan: function() {
+                    console.log('[JS] 调用 Native stopScan');
+                    window.webkit.messageHandlers.invokeStopScanning.postMessage({});
+                }
+            };
+            console.log('[JS] commonApi / scanApi 已注入');
             """
             webView.evaluateJavaScript(jsCode) { result, error in
                 if let error = error {
-                    print("📱 [Native] 注入 commonApi 失败: \(error.localizedDescription)")
+                    print("📱 [Native] 注入 API 失败: \(error.localizedDescription)")
                 } else {
-                    print("📱 [Native] commonApi 注入成功")
+                    print("📱 [Native] commonApi / scanApi 注入成功")
                 }
             }
         }
     }
+}
+
+enum ScanCallbackResult {
+    case suc(String)
+    case close
+    case error(String)
 }
