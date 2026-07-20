@@ -89,10 +89,28 @@ struct WebView: UIViewRepresentable {
         }
         
         private func getMachineId() -> String {
-            if let uuid = UIDevice.current.identifierForVendor?.uuidString {
-                return uuid
+            let key = "MACHINE_ID"
+            
+            if let savedId = KeychainManager.load(key: key) {
+                print("📱 [Native] 从 Keychain 获取设备 ID: \(savedId)")
+                return savedId
             }
-            return UUID().uuidString
+            
+            let newId: String
+            if let uuid = UIDevice.current.identifierForVendor?.uuidString {
+                newId = uuid.replacingOccurrences(of: "-", with: "")
+            } else {
+                newId = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+            }
+            
+            let success = KeychainManager.save(key: key, value: newId)
+            if success {
+                print("📱 [Native] 设备 ID 已保存到 Keychain: \(newId)")
+            } else {
+                print("📱 [Native] 设备 ID 保存到 Keychain 失败")
+            }
+            
+            return newId
         }
         
         // MARK: - 扫码
