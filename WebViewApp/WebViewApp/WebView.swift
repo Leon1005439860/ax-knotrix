@@ -13,6 +13,11 @@ struct WebView: UIViewRepresentable {
     
     func makeUIView(context: Context) -> WKWebView {
         let webConfiguration = WKWebViewConfiguration()
+        
+        // 支持网页内媒体播放（麦克风、摄像头）
+        webConfiguration.allowsInlineMediaPlayback = true
+        webConfiguration.mediaTypesRequiringUserActionForPlayback = []
+        
         let userContentController = WKUserContentController()
         userContentController.add(context.coordinator, name: "invokeGetMachineid")
         userContentController.add(context.coordinator, name: "invokeStartScanning")
@@ -22,6 +27,13 @@ struct WebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: webConfiguration)
         webView.allowsBackForwardNavigationGestures = true
         webView.navigationDelegate = context.coordinator
+        // 禁用 WebView 自身的滚动和反弹
+        webView.scrollView.isScrollEnabled = false
+        webView.scrollView.bounces = false
+        webView.scrollView.alwaysBounceVertical = false
+        webView.scrollView.alwaysBounceHorizontal = false
+        webView.scrollView.showsVerticalScrollIndicator = false
+        webView.scrollView.showsHorizontalScrollIndicator = false
         context.coordinator.webView = webView
         return webView
     }

@@ -10,6 +10,12 @@ struct ContentView: View {
     var body: some View {
         WebView(urlString: urlString, showScanner: $showScanner, scanResult: $scanResult)
             .ignoresSafeArea()
+            .onAppear {
+                // 禁用 WebView 反弹效果，并允许 WKWebView 内部 JS 控制滚动
+                // 锁死 App 整体滚动
+                UIScrollView.appearance().isScrollEnabled = false
+                UIScrollView.appearance().bounces = false
+            }
             .sheet(isPresented: $showScanner) {
                 ScannerView(
                     onResult: { value in
