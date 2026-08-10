@@ -27,6 +27,7 @@ struct WebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: webConfiguration)
         webView.allowsBackForwardNavigationGestures = true
         webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
         // 禁用 WebView 自身的滚动和反弹
         webView.scrollView.isScrollEnabled = false
         webView.scrollView.bounces = false
@@ -44,7 +45,7 @@ struct WebView: UIViewRepresentable {
         uiView.load(request)
     }
     
-    class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
+    class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate {
         var parent: WebView
         weak var webView: WKWebView?
         
@@ -151,6 +152,18 @@ struct WebView: UIViewRepresentable {
                     print("📱 [Native] 回调扫码结果成功")
                 }
             }
+        }
+        
+        // MARK: - WKUIDelegate: 媒体权限自动允许（只弹系统级一次，网页级不再弹窗）
+        @available(iOS 15.0, *)
+        func webView(_ webView: WKWebView,
+                     requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                     initiatedByFrame frame: WKFrameInfo,
+                     type: WKMediaCaptureType,
+                     decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+            print("📱 [Native] 网页请求媒体权限: type=\(type.rawValue), origin=\(origin.host ?? "")")
+            // 直接允许，由系统级权限控制（系统级只弹一次）
+            decisionHandler(.grant)
         }
         
         // MARK: - 页面加载完成，注入JS API
