@@ -41,5 +41,3 @@ workflows:
         api_key: $APP_STORE_CONNECT_API_KEY
         key_id: $APP_STORE_CONNECT_API_KEY_ID
         issuer_id: $APP_STORE_CONNECT_API_ISSUER_ID
-        submit_information:
-          submit_for_review: false
