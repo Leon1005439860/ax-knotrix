@@ -1,0 +1,45 @@
+workflows:
+  ios-build:
+    name: iOS Build & Upload
+    instance_type: mac_mini_m4
+    environment:
+      vars:
+        BUNDLE_ID: com.knotrix.WebViewApp
+        TEAM_ID: 78N442WG7C
+      xcode: "16.2"
+      cocoapods: default
+    scripts:
+      - name: Build iOS app
+        script: |
+          cd WebViewApp
+          xcodebuild \
+            -project WebViewApp.xcodeproj \
+            -scheme WebViewApp \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath ../build/WebViewApp.xcarchive \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=$TEAM_ID \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            build
+
+      - name: Create IPA
+        script: |
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/WebViewApp.xcarchive \
+            -exportPath build/output \
+            -exportOptionsPlist WebViewApp/exportOptions.plist \
+            clean
+
+    artifacts:
+      - build/output/**/*.ipa
+
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_API_KEY
+        key_id: $APP_STORE_CONNECT_API_KEY_ID
+        issuer_id: $APP_STORE_CONNECT_API_ISSUER_ID
+        submit_information:
+          submit_for_review: false
