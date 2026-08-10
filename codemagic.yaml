@@ -1,6 +1,6 @@
 workflows:
   ios-build:
-    name: iOS Build & Upload
+    name: iOS Build (Manual Upload)
     instance_type: mac_mini_m4
     environment:
       vars:
@@ -35,9 +35,3 @@ workflows:
 
     artifacts:
       - build/output/**/*.ipa
-
-    publishing:
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_API_KEY
-        key_id: $APP_STORE_CONNECT_API_KEY_ID
-        issuer_id: $APP_STORE_CONNECT_API_ISSUER_ID
