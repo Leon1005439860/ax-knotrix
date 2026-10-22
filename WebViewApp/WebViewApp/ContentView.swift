@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct ContentView: View {
-    //private let urlString = "http://192.168.118.157:5173/llk-webapp"
-    private let urlString = "https://sit-k-library.accentrix.com/llk-webapp/#/register"
+//    private let urlString = "http://192.168.118.157:5173/llk-webapp"
+//    private let urlString = "https://sit-k-library.accentrix.com/llk-webapp/#/register"
+    private let urlString = "https://uat-k-library.accentrix.com/llk-webapp/#/register"
     
     @State private var showScanner = false
     @State private var scanResult: ScanCallbackResult?

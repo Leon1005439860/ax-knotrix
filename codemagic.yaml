@@ -1,6 +1,6 @@
 workflows:
   ios-build:
-    name: iOS Build (Manual Upload)
+    name: iOS Build (For Pgyer)
     instance_type: mac_mini_m4
     environment:
       vars:
@@ -9,7 +9,7 @@ workflows:
       xcode: "16.2"
       cocoapods: default
     scripts:
-      - name: Build iOS app
+      - name: Build IPA for Pgyer
         script: |
           cd WebViewApp
           xcodebuild \
@@ -24,13 +24,11 @@ workflows:
             CODE_SIGN_IDENTITY="Apple Distribution" \
             build
 
-      - name: Create IPA
-        script: |
           xcodebuild \
             -exportArchive \
             -archivePath build/WebViewApp.xcarchive \
             -exportPath build/output \
-            -exportOptionsPlist WebViewApp/exportOptions.plist \
+            -exportOptionsPlist exportOptions.plist \
             clean
 
     artifacts:

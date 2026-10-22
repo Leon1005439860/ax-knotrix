@@ -1,0 +1,44 @@
+name: iOS Build
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Build IPA
+        working-directory: WebViewApp
+        run: |
+          xcodebuild \
+            -project WebViewApp.xcodeproj \
+            -scheme WebViewApp \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/WebViewApp.xcarchive \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=78N442WG7C \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            build
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/WebViewApp.xcarchive \
+            -exportPath build/output \
+            -exportOptionsPlist exportOptions.plist \
+            clean
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipa
+          path: WebViewApp/build/output/*.ipa
