@@ -168,7 +168,11 @@ struct WebView: UIViewRepresentable {
         
         // MARK: - 页面加载完成，注入JS API
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            print("📱 [Native] 页面加载完成，准备注入 commonApi / scanApi")
+            print("📱 [Native] 页面加载完成，准备注入 commonApi / scanApi / token")
+            
+            let token = KeychainManager.load(key: "TOKEN") ?? ""
+            let machineId = getMachineId()
+            
             let jsCode = """
             window.commonApi = {
                 getMachineid: function() {
@@ -186,13 +190,24 @@ struct WebView: UIViewRepresentable {
                     window.webkit.messageHandlers.invokeStopScanning.postMessage({});
                 }
             };
+            
+            (function() {
+                try {
+                    localStorage.setItem('TOKEN', '\(token)');
+                    localStorage.setItem('MACHINEID', '\(machineId)');
+                    console.log('[JS] Token 和 MachineID 已注入 localStorage');
+                } catch(e) {
+                    console.log('[JS] 注入 localStorage 失败:', e);
+                }
+            })();
+            
             console.log('[JS] commonApi / scanApi 已注入');
             """
             webView.evaluateJavaScript(jsCode) { result, error in
                 if let error = error {
                     print("📱 [Native] 注入 API 失败: \(error.localizedDescription)")
                 } else {
-                    print("📱 [Native] commonApi / scanApi 注入成功")
+                    print("📱 [Native] commonApi / scanApi / token 注入成功")
                 }
             }
         }

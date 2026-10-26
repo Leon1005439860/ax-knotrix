@@ -13,6 +13,8 @@
 		A1000001000000000000006 /* ScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001000000000000006 /* ScannerView.swift */; };
 		A1000001000000000000007 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001000000000000007 /* KeychainManager.swift */; };
 		A1000001000000000000008 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000001000000000000008 /* Assets.xcassets */; };
+		A1000001000000000000009 /* RegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001000000000000009 /* RegisterView.swift */; };
+		A1000001000000000000010 /* RegisterAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001000000000000010 /* RegisterAPIService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +26,8 @@
 		B1000001000000000000006 /* ScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerView.swift; sourceTree = "<group>"; };
 		B1000001000000000000007 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		B1000001000000000000008 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B1000001000000000000009 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
+		B1000001000000000000010 /* RegisterAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterAPIService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +57,8 @@
 				B1000001000000000000003 /* WebView.swift */,
 				B1000001000000000000006 /* ScannerView.swift */,
 				B1000001000000000000007 /* KeychainManager.swift */,
+				B1000001000000000000009 /* RegisterView.swift */,
+				B1000001000000000000010 /* RegisterAPIService.swift */,
 				B1000001000000000000008 /* Assets.xcassets */,
 				B1000001000000000000004 /* Info.plist */,
 			);
@@ -141,6 +147,8 @@
 				A1000001000000000000003 /* WebView.swift in Sources */,
 				A1000001000000000000006 /* ScannerView.swift in Sources */,
 				A1000001000000000000007 /* KeychainManager.swift in Sources */,
+				A1000001000000000000009 /* RegisterView.swift in Sources */,
+				A1000001000000000000010 /* RegisterAPIService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

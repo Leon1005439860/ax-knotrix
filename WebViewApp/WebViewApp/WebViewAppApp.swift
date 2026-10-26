@@ -2,11 +2,35 @@ import SwiftUI
 
 @main
 struct WebViewAppApp: App {
+    @State private var isRegistered: Bool = false
+    @State private var showWebView: Bool = false
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .statusBarHidden(true) // 隐藏顶部状态栏
-                .preferredColorScheme(.light) // 锁定浅色模式，避免网页颜色异常
+            Group {
+                if showWebView {
+                    ContentView()
+                        .ignoresSafeArea()
+                } else {
+                    RegisterView(onRegisterSuccess: {
+                        showWebView = true
+                    })
+                    .ignoresSafeArea()
+                }
+            }
+            .statusBarHidden(true)
+            .preferredColorScheme(.light)
+            .onAppear {
+                checkRegistrationStatus()
+            }
+        }
+    }
+    
+    private func checkRegistrationStatus() {
+        let hasToken = RegisterAPIService.shared.getToken() != nil
+        print("📱 [Native] 检查注册状态: \(hasToken ? "已注册" : "未注册")")
+        if hasToken {
+            showWebView = true
         }
     }
 }
