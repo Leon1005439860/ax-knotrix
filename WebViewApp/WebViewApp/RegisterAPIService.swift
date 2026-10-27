@@ -17,7 +17,7 @@ class RegisterAPIService {
     private init() {}
     
     private var baseURL: String {
-        return "https://sit-k-library.accentrix.com"
+        return AppConfig.shared.baseURL
     }
     
     private let machineIdKey = "MACHINE_ID"
@@ -34,7 +34,7 @@ class RegisterAPIService {
     }
     
     func getSiteInfo(deviceNo: String) async throws -> RegisterInfo {
-        let machineId = getMachineId()+"6"
+        let machineId = getMachineId()+"8"
         let urlString = "\(baseURL)/llk-api/llk/auth/register-confirmation?deviceNo=\(deviceNo)"
         
         print("📱 [Native] ===== 获取站点信息请求 =====")
@@ -84,7 +84,7 @@ class RegisterAPIService {
     }
     
     func register(deviceNo: String) async throws -> Bool {
-        let machineId = getMachineId()+"6"
+        let machineId = getMachineId()+"8"
         let urlString = "\(baseURL)/llk-api/llk/auth/register"
         
         print("📱 [Native] ======== 注册请求 ========")

@@ -27,6 +27,11 @@ struct WebViewAppApp: App {
     }
     
     private func checkRegistrationStatus() {
+        if AppConfig.shared.forceReRegister {
+            print("📱 [Native] 配置了强制重新注册，进入注册页")
+            showWebView = false
+            return
+        }
         let hasToken = RegisterAPIService.shared.getToken() != nil
         print("📱 [Native] 检查注册状态: \(hasToken ? "已注册" : "未注册")")
         if hasToken {
