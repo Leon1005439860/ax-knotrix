@@ -22,7 +22,22 @@ struct WebViewAppApp: App {
             .preferredColorScheme(.light)
             .onAppear {
                 checkRegistrationStatus()
+                setupNotificationObservers()
             }
+            .onDisappear {
+                NotificationCenter.default.removeObserver(self)
+            }
+        }
+    }
+    
+    private func setupNotificationObservers() {
+        NotificationCenter.default.addObserver(
+            forName: .tokenMissing,
+            object: nil,
+            queue: .main
+        ) { _ in
+            print("📱 [Native] 收到 tokenMissing 通知，返回注册页")
+            showWebView = false
         }
     }
     

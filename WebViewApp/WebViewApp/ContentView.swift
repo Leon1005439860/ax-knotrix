@@ -49,6 +49,7 @@ struct ContentView: View {
 
 extension Notification.Name {
     static let scanResult = Notification.Name("scanResult")
+    static let tokenMissing = Notification.Name("tokenMissing")
 }
 
 struct ContentView_Previews: PreviewProvider {
