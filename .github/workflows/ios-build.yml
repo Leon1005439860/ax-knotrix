@@ -39,12 +39,11 @@ jobs:
             -archivePath build/WebViewApp.xcarchive \
             CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM=78N442WG7C \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
             -allowProvisioningUpdates \
             -authenticationKeyPath ~/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8 \
             -authenticationKeyID $APP_STORE_CONNECT_KEY_ID \
             -authenticationKeyIssuerID $APP_STORE_CONNECT_ISSUER_ID \
-            build
+            archive
 
           xcodebuild \
             -exportArchive \
