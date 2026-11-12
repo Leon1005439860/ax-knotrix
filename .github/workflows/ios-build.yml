@@ -14,22 +14,47 @@ jobs:
       - name: Set up Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
 
       - name: Install App Store Connect API Key
         env:
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
           mkdir -p ~/private_keys
           echo "$APP_STORE_CONNECT_API_KEY" > ~/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
 
+      - name: Import code signing certificates
+        env:
+          DISTRIBUTION_CERTIFICATE: ${{ secrets.DISTRIBUTION_CERTIFICATE }}
+          DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain-db
+          KEYCHAIN_PASSWORD="tempPassword123!"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "$DISTRIBUTION_CERTIFICATE" | base64 --decode > certificate.p12
+          security import certificate.p12 -P "$DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROVISIONING_PROFILE" | base64 --decode > profile.mobileprovision
+          UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< $(security cms -D -i profile.mobileprovision))
+          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+
+          rm -f certificate.p12 profile.mobileprovision
+
       - name: Build IPA
         working-directory: WebViewApp
-        env:
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< $(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision | head -1))
+
           xcodebuild \
             -project WebViewApp.xcodeproj \
             -scheme WebViewApp \
@@ -37,23 +62,17 @@ jobs:
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -archivePath build/WebViewApp.xcarchive \
-            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM=78N442WG7C \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8 \
-            -authenticationKeyID $APP_STORE_CONNECT_KEY_ID \
-            -authenticationKeyIssuerID $APP_STORE_CONNECT_ISSUER_ID \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
             archive
 
           xcodebuild \
             -exportArchive \
             -archivePath build/WebViewApp.xcarchive \
             -exportPath build/output \
-            -exportOptionsPlist exportOptions.plist \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8 \
-            -authenticationKeyID $APP_STORE_CONNECT_KEY_ID \
-            -authenticationKeyIssuerID $APP_STORE_CONNECT_ISSUER_ID
+            -exportOptionsPlist exportOptions.plist
 
       - name: Upload to App Store Connect
         env:
