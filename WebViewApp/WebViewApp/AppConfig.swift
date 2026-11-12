@@ -10,7 +10,7 @@ class AppConfig {
     //let baseURL: String = "http://192.168.118.157:5173"
     
     // MARK: - 注册配置
-    /// 是否强制重新注册：true 时跳过 token 检查，每次启动都进入注册页.
+    /// 是否强制重新注册：true 时跳过 token 检查，每次启动都进入注册页
     let forceReRegister: Bool = false
     
     // MARK: - WebView 配置
